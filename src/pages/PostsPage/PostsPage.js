@@ -1,19 +1,29 @@
-import { useContext, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { GlobalContext } from "../../context/GlobalContext"
-import Post from "../../components/Post"
 import useProtectedPage from "../../hooks/useProtectedPage";
 import axios from "axios";
 import { BASE_URL } from "../../constants/url";
 import useForm from "../../hooks/useForm";
+import {
+    ButtonPost,
+    ContainerPost,
+    ContainerPostPage,
+    ColoredLine,
+} from "./PostsStyle";
+import Post from "../../components/Post/Post";
 
 export default function PostsPage() {
-    useProtectedPage();
+    useProtectedPage()
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const { posts, setPosts } = useContext(GlobalContext)
+    const { posts, setPosts, getPosts } = useContext(GlobalContext)
     const { form, onChange, cleanForm } = useForm({
         content: "",
     });
+
+    useEffect(() => {
+        getPosts();
+    }, []);
 
     const handleDeletePost = async (postId) => {
         setIsLoading(true);
@@ -40,6 +50,7 @@ export default function PostsPage() {
             };
             const response = await axios.post(`${BASE_URL}/posts`, body, {
                 headers: {
+
                     Authorization: window.localStorage.getItem("token"),
                 },
             });
@@ -52,28 +63,29 @@ export default function PostsPage() {
     };
 
     return (
-        <div>
-            <form>
-                <textarea
-
-                    placeholder="Escreva seu post..."
-                    name="content"
-                    value={form.content}
-                    onChange={onChange} />
-                <button onClick={addNewPost}>Postar</button>
-            </form>
+        <ContainerPostPage>
+            <ContainerPost>
+                <div className="inputForm">
+                    <textarea
+                        placeholder="Escreva seu post..."
+                        name="content"
+                        value={form.content}
+                        onChange={onChange} 
+                    />
+                </div>
+                <ButtonPost onClick={addNewPost}>Postar</ButtonPost>
+            </ContainerPost>
             {isLoading && <p>Carregando...</p>}
-            <div>
-                {posts.map((post, index) => {
-                    return (
-                        <Post
-                            key={index}
-                            post={post}
-                            onDelete={handleDeletePost}
-                        />
-                    );
-                })}
-            </div>
-        </div>
+            <ColoredLine />
+            {posts.map((post, index) => {
+                return (
+                    <Post
+                        key={index}
+                        post={post}
+                        onDelete={handleDeletePost}
+                    />
+                );
+            })}
+        </ContainerPostPage>
     )
 }
